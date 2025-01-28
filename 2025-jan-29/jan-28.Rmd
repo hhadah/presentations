@@ -1,0 +1,922 @@
+---
+title: "Waiting Periods and Firearm Suicides"
+subtitle: "The Effects of Waiting Periods on Firearm Suicides in the U.S."
+author: 
+   - Hussain Hadah
+  #  - Gael Compta
+institute: |
+  | Murphy Inst. & Tulane U
+date: "01/28/2025"
+header-includes:
+   - \usepackage{bbm}
+   - \usepackage{amsmath}
+   - \usepackage{booktabs}
+   - \usepackage{siunitx}
+   - \newcolumntype{d}{S[input-symbols = ()]}
+   - \definecolor{blue}{RGB}{0,114,178}
+   - \definecolor{red}{RGB}{213,94,0}
+   - \definecolor{yellow}{RGB}{240,228,66}
+   - \definecolor{green}{RGB}{0,158,115}
+output:
+  beamer_presentation:
+    slide_level: 3
+    toc: false
+    theme: "CambridgeUS"
+    colortheme: "beaver"
+    fonttheme: "structurebold"
+    fig_width: 7
+    fig_height: 5
+    fig_caption: false
+    #incremental: true
+# bibliography: AttitudesPaper.bib
+# biblio-style: apalike
+# nocite: '@*'
+---
+
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+library(knitr)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+library(knitr)
+knitr::opts_chunk$set(echo = FALSE)
+
+## Load and install the packages that we'll be using today
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tictoc, parallel, pbapply, future, future.apply, furrr, RhpcBLASctl, memoise, here, foreign, mfx, tidyverse, hrbrthemes, estimatr, ivreg, fixest, sandwich, lmtest, margins, vtable, broom, modelsummary, stargazer, fastDummies, recipes, dummy, gplots, haven, huxtable, kableExtra, gmodels, survey, gtsummary, data.table, tidyfast, dtplyr, microbenchmark, ggpubr, tibble, viridis, wesanderson, censReg, rstatix, srvyr, formatR, sysfonts, showtextdb, showtext, thematic, sampleSelection, RefManageR, DT, googleVis, png, gridExtra, grid, lattice, renderthis, chromote, flair, ggdag, scales)
+# devtools::install_github("thomasp85/patchwork")
+remotes::install_github("mitchelloharawild/icons")
+remotes::install_github("ROpenSci/bibtex")
+remotes::install_github("jhelvy/renderthis", dependencies = TRUE)
+remotes::install_github("rstudio/chromote")
+
+# devtools::install_github("ajdamico/lodown")
+## My preferred ggplot2 plotting theme (optional)
+## https://github.com/hrbrmstr/hrbrthemes
+# scale_fill_ipsum()
+# scale_color_ipsum()
+font_add_google("Fira Sans", "firasans")
+font_add_google("Fira Code", "firasans")
+
+showtext_auto()
+
+theme_customs <- theme(
+  text = element_text(family = 'firasans', size = 16),
+  plot.title.position = 'plot',
+  plot.title = element_text(
+    face = 'bold', 
+    colour = thematic::okabe_ito(8)[6],
+    margin = margin(t = 2, r = 0, b = 7, l = 0, unit = "mm")
+  ),
+)
+
+colors <-  thematic::okabe_ito(5)
+
+# theme_set(theme_minimal() + theme_customs)
+theme_set(hrbrthemes::theme_ipsum() + theme_customs)
+## Set master directory where all sub-directories are located
+mdir <- "/Users/hhadah/Library/CloudStorage/Dropbox/Research/My Research Data and Ideas/SuicideGun"
+
+## Set working directories
+pres_trends <- paste0(mdir,"/output/trends")
+pres_plots <- paste0(mdir,"/output/figures")
+presentation_wd <- paste0(mdir,"/presentation/2025-jan-29")
+
+## Set working directory
+
+# COLOR PALLETES
+library(paletteer) 
+# paletteer_d("awtools::a_palette")
+# paletteer_d("suffrager::CarolMan")
+
+### COLOR BLIND PALLETES
+#paletteer_d("colorblindr::OkabeIto")
+#paletteer_d("colorblindr::OkabeIto_black")
+# paletteer_d("colorBlindness::paletteMartin")
+# paletteer_d("colorBlindness::Blue2DarkRed18Steps")
+# paletteer_d("colorBlindness::SteppedSequential5Steps")
+# paletteer_d("colorBlindness::PairedColor12Steps")
+# paletteer_d("colorBlindness::ModifiedSpectralScheme11Steps")
+colorBlindness <- paletteer_d("colorBlindness::Blue2Orange12Steps")
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+# scale_colour_paletteer_d("colorBlindness::ModifiedSpectralScheme11Steps", dynamic = FALSE)
+# To use for fills, add
+  scale_fill_manual(values="colorBlindness::Blue2Orange12Steps")
+
+# To use for line and point colors, add
+  scale_colour_manual(values="colorBlindness::Blue2Orange12Steps")
+  #<a><button>[Click me](#sources)</button></a>
+
+```
+
+# Background
+
+### Stylized facts
+
+- Suicides by firearms constitute the majority of gun deaths in the U.S. (approximately 60\%) 
+
+\bigskip
+
+- Suicides in the U.S. have been on the rise after a steady decline in the 1990s
+
+\bigskip
+
+- Men are more likely to use firearms to commit suicide (more on this in a few slides)
+
+### Suicides in the U.S have been on the rise
+
+```{r plot-1, echo=FALSE, warning=FALSE, out.width="100%", fig.show='hold', fig.align='center'}
+library(gridExtra)
+# Load your images
+p1 <- grid::rasterGrob(readPNG("trends/06-suicide_byyear_popcont.png"))
+
+
+gridExtra::grid.arrange(
+  grobs = list(p1),
+  ncol = 1
+)
+
+```
+
+### Suicides by firearms have also been on the rise
+
+```{r plot-2, echo=FALSE, warning=FALSE, out.width="100%", fig.show='hold', fig.align='center'}
+library(gridExtra)
+# Load your images
+p1 <- grid::rasterGrob(readPNG("trends/05-suicide_firearm_byyear_popcont.png"))
+
+
+gridExtra::grid.arrange(
+  grobs = list(p1),
+  ncol = 1
+)
+
+```
+
+
+### The medical and psychiatric literature
+
+- Previous studies in medicine and psychiatry attempted to study the effect of waiting periods on suicides
+
+- Most of the estimates are non-causal and use cross country analysis
+
+  - e.g. comparing the U.S. to Australia and Europe
+
+### Most major medical and psychiatric organizations support waiting periods to reduce suicides
+
+- The evidence are mixed, and most studies are non-causal
+
+  - Waiting-period requirements were associated with reductions in firearm suicide rates (Edwards et al., 2018; Luca, Malhotra, and Poliquin, 2017)
+  - States with Brady Act waiting periods saw firearm suicide declines (Ludwig and Cook, 2000)
+  - Gun-related suicides correlated with gun ownership across 21 countries (Killias et al., 2001; Victimization Surveys, N=16–18)
+  - Australian gun law reforms reduced firearm suicides but not overall suicides (Baker & McPhedran, 2007; Time-series: 1979–2004)
+  - Waiting periods were advocated to mitigate gun-related suicides (Lewiecki & Miller, 2013)
+  - Indiana's firearm seizure law was linked to a 7.5% drop in suicides (Kivisto & Phalen, 2018; State-level data: 1981–2015)
+  - Gun ownership positively related to firearm suicides in 11 countries (Killias, 1993; Survey, N=28,000)
+
+### Suicide is often considered an impulsive decision that can be prevented by restricting access to means
+
+```{r plot-0, echo=FALSE, warning=FALSE, out.width="80%", fig.show='hold', fig.align='center'}
+library(gridExtra)
+library(png)  # Make sure this is loaded for readPNG
+
+# Load your images
+p1 <- grid::rasterGrob(readPNG("/Users/hhadah/Library/CloudStorage/Dropbox/Research/My Research Data and Ideas/SuicideGun/presentation/2025-jan-29/bottle.png"))
+p2 <- grid::rasterGrob(readPNG("/Users/hhadah/Library/CloudStorage/Dropbox/Research/My Research Data and Ideas/SuicideGun/presentation/2025-jan-29/barrier.png"))
+p4 <- grid::rasterGrob(readPNG("/Users/hhadah/Library/CloudStorage/Dropbox/Research/My Research Data and Ideas/SuicideGun/presentation/2025-jan-29/golden-gate.png"))
+p5 <- grid::rasterGrob(readPNG("/Users/hhadah/Library/CloudStorage/Dropbox/Research/My Research Data and Ideas/SuicideGun/presentation/2025-jan-29/pill-pack.png"))
+
+# Arrange the images in a grid
+# You can adjust the layout using ncol and nrow parameters
+grid.arrange(p1, p5, p2, p4, ncol=2, nrow=2)
+```
+
+### In an Op-Ed, Ronald Reagan supported the passage of the Brady Act and mentioned suicide as a reason
+
+```{r plot-reagan, echo=FALSE, warning=FALSE, out.width="70%", fig.show='hold', fig.align='center'}
+library(gridExtra)
+library(png)  # Make sure this is loaded for readPNG
+
+# Load your images
+p3 <- grid::rasterGrob(readPNG("/Users/hhadah/Library/CloudStorage/Dropbox/Research/My Research Data and Ideas/SuicideGun/presentation/2025-jan-29/reagan.png"))
+# Arrange the images in a grid
+# You can adjust the layout using ncol and nrow parameters
+grid.arrange(p3, ncol=1)
+```
+
+### Using the development in the Difference-in-Differences literature, we will answer the following question
+
+- Is there a \textcolor{blue}{causal} effect of \textcolor{red}{waiting periods} on suicides by firearms in the U.S.?
+
+# Data
+
+### Suicide and state-level gun control data
+
+- My primary data source is the National Vital Statistics System (National Center for Health Statistics, 2020)
+
+  - The National Center for Health Statistics collects data for the U.S. government to monitor and improve the nation's death rates 
+  - The Multiple Cause of Death files provide the cause of death of every mortality that occurs in the U.S.
+  - The data is at the county level and from 1959 to 2019 and has information on sex, age, race, etc.
+
+- For state level gun control policies, I use the RAND state firearm law database (RAND, 2022)
+
+  - This dataset has information on all gun control policies, including waiting periods
+
+\hyperlink{trends-1}{\beamerbutton{Firearm Suicides and Treatment Trends}} \hypertarget{Back2}{}
+\hyperlink{trends-2}{\beamerbutton{Suicides and Treatment Trends}} \hypertarget{Back2}{}
+\hyperlink{dem-vote}{\beamerbutton{Firearm Suicides by Dem Vote}} \hypertarget{Back2}{}
+\hyperlink{density}{\beamerbutton{Firearm Suicides by Density}} \hypertarget{Back2}{}
+
+### Firearms suicide by sex, age, and race
+
+```{r plot-3, echo=FALSE, warning=FALSE, out.width="100%", fig.show='hold', fig.align='center'}
+library(gridExtra)
+# Load your images
+p1 <- grid::rasterGrob(readPNG("trends/221-suicide_firearm_byyear_raceagesex.png"))
+
+
+gridExtra::grid.arrange(
+  grobs = list(p1),
+  ncol = 1
+)
+
+```
+
+### State-level variation in waiting period policies
+
+```{r plot-4, echo=FALSE, warning=FALSE, out.width="100%", fig.show='hold', fig.align='center'}
+library(gridExtra)
+# Load your images
+p1 <- grid::rasterGrob(readPNG("trends/211-county_year_panel_view.png"))
+
+
+gridExtra::grid.arrange(
+  grobs = list(p1),
+  ncol = 1
+)
+```
+
+### I will use a subsample of states and years where states do not switch back to untreatment
+
+```{r plot-5, echo=FALSE, warning=FALSE, out.width="100%", fig.show='hold', fig.align='center'}
+library(gridExtra)
+# Load your images
+p1 <- grid::rasterGrob(readPNG("trends/192-staggarred_sample_panel_view.png"))
+
+
+gridExtra::grid.arrange(
+  grobs = list(p1),
+  ncol = 1
+)
+```
+
+### Number of clusters per treatment history
+
+```{r plot-6, echo=FALSE, warning=FALSE, out.width="100%", fig.show='hold', fig.align='center'}
+library(gridExtra)
+# Load your images
+p1 <- grid::rasterGrob(readPNG("trends/195-staggarred_sample_panel_view.png"))
+
+
+gridExtra::grid.arrange(
+  grobs = list(p1),
+  ncol = 1
+)
+```
+
+# A Brief Intro to Difference-in-Differences
+
+### Selection Bias Could Lead to Misleading Results
+
+```{r airplane, echo=FALSE, warning=FALSE, out.width="80%", fig.show='hold', fig.align='center'}
+library(ggplot2)
+library(png)
+library(grid)
+
+# Read the image file
+img1 <- readPNG("/Users/hhadah/Library/CloudStorage/Dropbox/Research/My Research Data and Ideas/SuicideGun/presentation/2025-jan-29/selection-bias.png")
+
+# Plot the image
+grid.raster(img1)
+```
+
+### A Brief Intro to Difference-in-Differences
+
+- Also called “Diff-in-Diff” or just DD or DID or DiD.
+- This is a particular model used in regression analysis (more on what that is later).
+- Instead of just comparing the “treated” firms/people/counties to the “control” firms/people/counties, you make this comparison over time
+- Compare the pre-period (no one is “treated”) to the post-period (some firms/people/counties are “treated”)
+
+### Top Gun Training: A simple example
+
+Suppose you are interested in the effect of a “Top Gun Training” program on successful maneuvers in the air
+
+  - We can compare the performance of pilots who have gone through the training before and after the training
+  - In this case, you're only looking at the treatment group!
+  - Impossible to know if change happened because of treatment or just naturally
+
+We can compare the performance of pilots who have gone through the training to those who have not
+
+- You're only looking at post-treatment values
+- Impossible to know if change happened because of natural growth
+
+### The basic idea: Top Gun Training
+
+
+```{r min-wage-dag, echo=FALSE, warning=FALSE, message=FALSE, out.width="55%", fig.show='hold', fig.align='center', include=TRUE, eval=TRUE, results = FALSE}
+node_details <- tribble(
+  ~name, ~label, ~x, ~y,
+  "treatment", "Top Gun Training", 1, 2,
+  "outcome", "Y", 3, 2,
+  "time", "Time", 2, 3,
+  "nj", "Being in TOPGUN", 2, 1
+)
+
+node_labels <- node_details$label
+names(node_labels) <- node_details$name
+
+my_dag <- dagify(outcome ~ treatment + time + nj,
+                 treatment ~ time + nj,
+                 exposure = "treatment",
+                 outcome = "outcome",
+                 coords = node_details,
+                 labels = node_labels) |> 
+  tidy_dagitty() |>
+  node_status()   # Add column for exposure/outcome/latent
+
+status_colors <- c(exposure = "#0074D9", outcome = "#FF851B", latent = "grey50")
+
+# Fancier graph
+set.seed(1234)
+ggplot(my_dag, aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_dag_edges(start_cap = ggraph::circle(3, "lines"),
+                 end_cap = ggraph::circle(3, "lines"),
+                 edge_width = 1.5, 
+                 arrow_directed = grid::arrow(length = grid::unit(0.75, "lines"), type = "closed")) +
+  geom_dag_point(aes(color = status), size = 30) +
+  geom_dag_label_repel(aes(label = label, fill = status), seed = 1234,
+                       color = "white", fontface = "bold", size = 10,
+                       label.padding = grid::unit(0.75, "lines"),
+                       box.padding = grid::unit(2.5, "lines"),
+                       direction = "y") +
+  scale_color_manual(values = status_colors, na.value = "grey20") +
+  scale_fill_manual(values = status_colors, na.value = "grey20") +
+  guides(color = FALSE, fill = FALSE) + 
+  theme_dag(base_size = 20, base_family = "Fira Sans Condensed")
+```
+
+### 
+
+```{=latex}
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.5} % Increases row height
+\setlength{\tabcolsep}{8pt} % Adjusts column spacing
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\cellcolor{red}& \cellcolor{red}\textbf{Pre mean} & \cellcolor{red}\textbf{Post mean} \\ \midrule
+\cellcolor{red}\textbf{No Training}  & \(A\) (never treated)    & \(B\) (never treated) \\
+\cellcolor{red}\textbf{Top Gun Training} & \(C\) (not yet treated) & \(D\) (treated) \\ \bottomrule
+\end{tabular}
+\end{table}
+```
+
+###
+
+```{=latex}
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.5} % Increases row height
+\setlength{\tabcolsep}{8pt} % Adjusts column spacing
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\cellcolor{red}& \cellcolor{red}\textbf{Pre mean} & \cellcolor{red}\textbf{Post mean} & \cellcolor{yellow}\textbf{$\Delta$ (post - pre)} \\ \midrule
+\cellcolor{red}\textbf{No Training}  & \(A\) (never treated)    & \(B\) (never treated)    & \cellcolor{yellow}\(B - A\) \\
+\cellcolor{red}\textbf{Top Gun Training} & \(C\) (not yet treated) & \(D\) (treated)          & \cellcolor{yellow}\(D - C\) \\ \bottomrule
+\end{tabular}
+\end{table}
+```
+#### $\Delta$ (post - pre) = within-pilot change
+
+###
+
+```{=latex}
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.5} % Increases row height
+\setlength{\tabcolsep}{8pt} % Adjusts column spacing
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\cellcolor{red}& \cellcolor{red}\textbf{Pre mean} & \cellcolor{red}\textbf{Post mean} \\ \midrule
+\cellcolor{red}\textbf{No Training}  & \(A\) (never treated)    & \(B\) (never treated)    \\
+\cellcolor{red}\textbf{Top Gun Training} & \(C\) (not yet treated) & \(D\) (treated)          \\ \midrule
+\cellcolor{yellow}\textbf{$\Delta$ (Treatment - Control)} & \cellcolor{yellow}\(C - A\) & \cellcolor{yellow}\(D - B\) \\ \bottomrule
+\end{tabular}
+\end{table}
+```
+#### $\Delta$ (Treatment - Control) = across-pilot change
+
+###
+
+```{=latex}
+% Table 4
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.5} % Increases row height
+\setlength{\tabcolsep}{8pt} % Adjusts column spacing
+\small
+\resizebox{\textwidth}{!}{ % Resizes the table to fit within the text width
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\cellcolor{red}& \cellcolor{red}\textbf{Pre mean} & \cellcolor{red}\textbf{Post mean} & \cellcolor{yellow}\textbf{$\Delta$ (post - pre)} \\ \midrule
+\cellcolor{red}\textbf{No Training}  & \(A\) (never treated)    & \(B\) (never treated)    & \cellcolor{yellow}\(B - A\) \\
+\cellcolor{red}\textbf{Top Gun Training} & \(C\) (not yet treated) & \(D\) (treated)          & \cellcolor{yellow}\(D - C\) \\ \midrule
+\cellcolor{yellow}\textbf{$\Delta$ (Treatment - Control)} & \cellcolor{yellow}\(C - A\) & \cellcolor{yellow}\(D - B\) & \cellcolor{blue}\(\begin{aligned} (D - C) - (B - A) \\ \text{or} \\ (D - B) - (C - A) \end{aligned}\) \\ \bottomrule
+\end{tabular}
+}
+\end{table}
+```
+
+- The difference-in-differences estimate of the causal effect is:
+$(A – B) – (C – D)$
+- The $A – B$ tells us the change over time of Top Gun pilots. How did maneuvering change for Top Gun pilots?
+- The $C – D$ tells give us an estimate of the counterfactual. If Top Gun pilots are similar to non-Top Gun pilots in their maneuvering trends then $C – D$ gives us an estimate of what would have happened without Top Gun training. 
+
+
+###
+
+```{r dd-graph, echo=FALSE, warning=FALSE, message=FALSE, out.width="90%", fig.show='hold', fig.align='center', results = FALSE, eval=TRUE}
+dd_labels <- tribble(
+  ~Group, ~Time, ~label,
+  "Treatment", "Before", "C",
+  "Treatment", "After", "D",
+  "Control",   "Before", "A",
+  "Control",   "After", "B"
+)
+
+dd_data <- tribble(
+  ~Group, ~Before, ~Intervention, ~After,
+  "Treatment", 30, 35, 50,
+  "Control",   20, 25, 30
+) |> 
+  pivot_longer(cols = !Group, names_to = "Time", values_to = "avg") |> 
+  left_join(dd_labels, by = c("Group", "Time")) |> 
+  mutate(across(c(Group, Time), ~fct_inorder(.)))
+
+ggplot(dd_data, aes(x = Time, y = avg, color = Group, group = Group)) +
+  geom_vline(xintercept = "Treatment") +
+  geom_line(
+    size = 3,
+    key_glyph = draw_key_point
+  ) +
+  # Highlight causal effect with segments and label
+  annotate(geom = "segment", x = "Intervention", xend = "After",
+           y = 35, yend = 40, color = "#0074D9", size = 2, linetype = "22") +
+  annotate(geom = "segment", x = "After", xend = "After",
+           y = 40, yend = 50, color = "#FF4136", size = 2) +
+  annotate(geom = "label", x = "After", y = 45, label = "Causal\neffect",
+           family = "Fira Sans Condensed Bold", fontface = "plain", 
+           size = 4, fill = "#FF4136", color = "white") +
+  # Plot big points with letters
+  geom_point(data = filter(dd_data, !is.na(label)), size = 15) +
+  geom_text(aes(label = label), 
+            family = "Fira Sans Condensed Bold", 
+            fontface = "plain", size = 10, color = "white") +
+  # Custom color scale with no legend
+  scale_color_manual(
+    values = c("#0074D9", "#3D9970"),
+    guide = "none"
+  ) +
+  # Directly annotate Treatment and Control
+  annotate(
+    geom = "text",
+    x = "After", y = 54,
+    label = "Treatment",
+    color = "#0074D9",
+    family = "Fira Sans Condensed Bold",
+    size = 6, fontface = "plain"
+  ) +
+  annotate(
+    geom = "text",
+    x = "After", y = 25,
+    label = "Control",
+    color = "#3D9970",
+    family = "Fira Sans Condensed Bold",
+    size = 6, fontface = "plain"
+  ) +
+  labs(x = NULL, y = "Outcome") +
+  coord_cartesian(ylim = c(15, 55)) +
+  theme_bw(base_size = 24, base_family = "Fira Sans Condensed")
+```
+
+###
+
+```{r dd-graph-2, echo=FALSE, warning=FALSE, message=FALSE, out.width="90%", fig.show='hold', fig.align='center', results = FALSE, eval=TRUE}
+dd_labels <- tribble(
+  ~Group, ~Time, ~label,
+  "Treatment", "Before", "C",
+  "Treatment", "After", "D",
+  "Control",   "Before", "A",
+  "Control",   "After", "B"
+)
+
+dd_data <- tribble(
+  ~Group, ~Before, ~Intervention, ~After,
+  "Treatment", 30, 35, 50,
+  "Control",   20, 25, 30
+) |> 
+  pivot_longer(cols = !Group, names_to = "Time", values_to = "avg") |> 
+  left_join(dd_labels, by = c("Group", "Time")) |> 
+  mutate(across(c(Group, Time), ~fct_inorder(.)))
+
+ggplot(dd_data, aes(x = Time, y = avg, color = Group, group = Group)) +
+  geom_vline(xintercept = "Treatment") +
+  geom_line(
+    size = 3,
+    key_glyph = draw_key_point
+  ) +
+  # Highlight causal effect with segments and label
+  annotate(geom = "segment", x = "Intervention", xend = "After",
+           y = 35, yend = 40, color = "#0074D9", size = 2, linetype = "22") +
+  annotate(geom = "segment", x = "After", xend = "After",
+           y = 40, yend = 50, color = "#FF4136", size = 2) +
+  annotate(geom = "label", x = "After", y = 45, label = "Causal\neffect",
+           family = "Fira Sans Condensed Bold", fontface = "plain", 
+           size = 4, fill = "#FF4136", color = "white") +
+  # Plot big points with letters
+  geom_point(data = filter(dd_data, !is.na(label)), size = 15) +
+  geom_text(aes(label = label), 
+            family = "Fira Sans Condensed Bold", 
+            fontface = "plain", size = 10, color = "white") +
+  # Custom color scale with no legend
+  scale_color_manual(
+    values = c("#0074D9", "#3D9970"),
+    guide = "none"
+  ) +
+  # Directly annotate Treatment and Control
+  annotate(
+    geom = "text",
+    x = "After", y = 54,
+    label = "Treatment",
+    color = "#0074D9",
+    family = "Fira Sans Condensed Bold",
+    size = 6, fontface = "plain"
+  ) +
+  annotate(
+    geom = "text",
+    x = "After", y = 25,
+    label = "Control",
+    color = "#3D9970",
+    family = "Fira Sans Condensed Bold",
+    size = 6, fontface = "plain"
+  ) +
+  labs(x = NULL, y = "Outcome") +
+  coord_cartesian(ylim = c(15, 55)) +
+  theme_bw(base_size = 24, base_family = "Fira Sans Condensed")
+```
+
+
+# Empirical Strategy
+
+### The question I will answer
+
+#### What is the causal effect of waiting periods on firearm suicides in the U.S.?
+
+#### I will compare the change in firearm suicides in treated counties to the change in firearm suicides in untreated counties
+
+### How We Measure the Impact of Waiting Periods on Firearm Suicides
+
+What I am Doing:
+
+- I want to see whether introducing a waiting period for purchasing firearms reduces the rate of firearm suicides
+- I track each county’s “event date,” which is the year (or period) it starts requiring waiting periods
+- Then, for each county, we look at its suicide rate before and after that event date and compare it to counties that haven’t yet started waiting periods
+- By doing this comparison in each time period before and after adoption, we get a picture of how firearm suicide rates change when a waiting period is introduced
+- I assume that, if no waiting period had been put in place, the counties introducing it would have followed the same trends in firearm suicides as the counties not yet introducing it
+- I also assume that people don’t change their behavior in advance (i.e., no “rush” to buy guns just before a waiting period starts)
+- These comparisons (often called an “event study”) help us estimate the true effect of waiting periods on reducing firearm suicides over time
+
+\hyperlink{attgt}{\beamerbutton{Empirical Specification}} \hypertarget{Back}{}
+
+# Results
+
+### I find that waiting periods cause a small reduction in firearm suicides
+
+```{r plot-7, echo=FALSE, warning=FALSE, out.width="100%", out.height="80%" ,fig.show='hold', fig.align='center'}
+library(gridExtra)
+# Load your images
+p1 <- grid::rasterGrob(readPNG("figures/1000-csid-all-fire.png"))
+
+
+gridExtra::grid.arrange(
+  grobs = list(p1),
+  ncol = 1
+)
+```
+
+### I find more significant effects of waiting periods on male firearm suicides
+
+```{r plot-9, echo=FALSE, warning=FALSE, out.width="100%", out.height="80%" ,fig.show='hold', fig.align='center'}
+library(gridExtra)
+# Load your images
+p1 <- grid::rasterGrob(readPNG("figures/1001-csid-men-fire.png"))
+
+
+gridExtra::grid.arrange(
+  grobs = list(p1),
+  ncol = 1
+)
+```
+
+### I find large and significant effects of waiting periods on firearm suicides among individuals aged 55+
+
+```{r plot-10, echo=FALSE, warning=FALSE, out.width="100%", out.height="80%" ,fig.show='hold', fig.align='center'}
+library(gridExtra)
+# Load your images
+p1 <- grid::rasterGrob(readPNG("figures/1002-csid-age_55p-fire.png"))
+
+gridExtra::grid.arrange(
+  grobs = list(p1),
+  ncol = 1
+)
+```
+
+### I find large and significant effects of waiting periods on firearm suicides among white individuals
+
+```{r plot-11, echo=FALSE, warning=FALSE, out.width="100%", out.height="80%" ,fig.show='hold', fig.align='center'}
+library(gridExtra)
+# Load your images
+p1 <- grid::rasterGrob(readPNG("figures/1003-csid-white-fire.png"))
+
+gridExtra::grid.arrange(
+  grobs = list(p1),
+  ncol = 1
+)
+```
+
+# Results: Non-Firearm Suicides
+
+### I find that waiting periods do increase non-firearm suicides
+
+```{r plot-12, echo=FALSE, warning=FALSE, out.width="100%", out.height="80%" ,fig.show='hold', fig.align='center'}
+library(gridExtra)
+# Load your images
+p1 <- grid::rasterGrob(readPNG("figures/1004-csid-all-other.png"))
+
+gridExtra::grid.arrange(
+  grobs = list(p1),
+  ncol = 1
+)
+```
+
+### I find that waiting periods do not increase non-firearm suicides among men
+
+```{r plot-13, echo=FALSE, warning=FALSE, out.width="100%", out.height="80%" ,fig.show='hold', fig.align='center'}
+library(gridExtra)
+# Load your images
+p1 <- grid::rasterGrob(readPNG("figures/1005-csid-men-other.png"))
+
+gridExtra::grid.arrange(
+  grobs = list(p1),
+  ncol = 1
+)
+```
+
+### I find that waiting periods do not increase non-firearm suicides among individuals aged 55+
+
+```{r plot-14, echo=FALSE, warning=FALSE, out.width="100%", out.height="80%" ,fig.show='hold', fig.align='center'}
+library(gridExtra)
+# Load your images
+p1 <- grid::rasterGrob(readPNG("figures/1006-csid-age_55p-other.png"))
+
+gridExtra::grid.arrange(
+  grobs = list(p1),
+  ncol = 1
+)
+```
+
+### I find that waiting periods do not increase non-firearm suicides among white individuals
+
+```{r plot-15, echo=FALSE, warning=FALSE, out.width="100%", out.height="80%" ,fig.show='hold', fig.align='center'}
+library(gridExtra)
+# Load your images
+p1 <- grid::rasterGrob(readPNG("figures/1007-csid-white-other.png"))
+
+gridExtra::grid.arrange(
+  grobs = list(p1),
+  ncol = 1
+)
+```
+
+# Conclusion
+
+### Back of the envelope calculations
+
+- Waiting periods decrease firearm suicides by 0.6 deaths per 100,000 people
+
+  - That is an 8\% decrease in firearm suicides
+  - That is a reduction of 1,924 firearm suicides per year
+
+- The benefits of waiting periods could range from  \$11.7 to \$37.9 billion per year
+  - Value of statistical life = ranges from \$6.4 to \$19.7 million (HHS, 2024)
+
+### Waiting periods are effective in reducing firearm suicides
+
+- Waiting periods reduce firearm suicides by 0.6 deaths per 100,000 people
+
+- These effects are larger among men, individuals aged 55+, and white individuals
+
+- Waiting periods do not increase non-firearm suicides
+
+- The benefits of waiting periods could be as high as \$37.9 billion per year
+
+###
+
+\Huge Thank you!
+
+# Appendix
+
+### Event Study Specification
+
+\begin{align*}
+Y_{ist} = & \sum_{l=-K}^{L} \beta_l \mathbbm{1}\{t-E_s=l\} + \theta_i + \lambda_t + \varepsilon_{ist}
+\end{align*}
+
+\pause
+
+where:
+
+- $Y_{ist}$ is the number of firearm suicides per 100,000 in county $i$ in state $s$ at time $t$
+- $E_s$ is the time period when state $s$ implemented a waiting period
+- $\mathbbm{1}\{t-E_s=l\}$ is an indicator variable equal to 1 when time $t$ is $l$ periods away from the implementation of waiting periods in state $s$
+
+\hypertarget{attgt}{}\hyperlink{Back}{\beamerbutton{Back}}
+
+
+### Event Study Specification
+
+\begin{align*}
+\textcolor{blue}{Y_{ist}} = & \sum_{l=-K}^{L} \beta_l \textcolor{green}{\mathbbm{1}\{t-\textcolor{red}{E_s}=l\}} + \theta_i + \lambda_t + \varepsilon_{ist}
+\end{align*}
+
+where:
+
+- $\textcolor{blue}{Y_{ist}}$ is the number of firearm suicides per 100,000 in county $\textcolor{yellow}{i}$ in state $\textcolor{yellow}{s}$ at time $\textcolor{yellow}{t}$
+- $\textcolor{red}{E_s}$ is the time period when state $\textcolor{red}{s}$ implemented a waiting period
+- $\textcolor{green}{\mathbbm{1}\{t-\textcolor{red}{E_s}=l\}}$ is an indicator variable equal to 1 when time $t$ is $l$ periods away from the implementation of waiting periods in state $s$
+
+
+### Event Study Specification (Cont'd)
+
+\begin{align*}
+Y_{ist} = & \sum_{l=-K}^{L} \textcolor{blue}{\beta_l} \mathbbm{1}\{t-E_s=l\} + \theta_i + \lambda_t + \varepsilon_{ist}
+\end{align*}
+
+\pause
+
+- For $l < 0$, $\textcolor{blue}{\beta_l}$ captures the differences in firearm suicides between treated and control counties before the implementation of waiting periods
+
+\pause
+
+- For $l \geq 0$, $\textcolor{blue}{\beta_l}$ captures the post-treatment effect of waiting periods
+
+- To identify causal estimates of $\textcolor{blue}{\beta_l}$, we need the parallel trends and no anticipation assumptions to hold 
+
+### Brady Act and the Parallel Trends Assumption
+
+- The Brady Act was signed into law in 1993 and required a five-day waiting period for the purchase of a handgun
+
+- Supreme Court ruled that the Brady Act was unconstitutional in 1997
+
+```{r plot-brady, echo=FALSE, warning=FALSE, out.width="60%", fig.show='hold', fig.align='center'}
+library(gridExtra)
+# Load your images
+p1 <- grid::rasterGrob(readPNG("trends/218-treated-trends.png"))
+
+
+gridExtra::grid.arrange(
+  grobs = list(p1),
+  ncol = 1
+)
+```
+
+### Average Treatment Effect Using Callaway and Sant’Anna (2021)
+
+- I estimate the average treatment effect of waiting periods on firearm suicides by using the not-yet-treated counties as a control group
+
+- The average treatment effect is given by:
+
+\begin{align*}
+ATT(g, t) = \mathbb{E}[Y_{is, t} - Y_{is, g-1} \mid G_i = g] - \mathbb{E}[Y_{is, t} - Y_{is, g-1} \mid G_i \in \mathcal{G}_{comp}]
+\end{align*}
+
+where:
+
+- $\mathbb{E}[Y_{is, t} - Y_{is, g-1} \mid G_i = g]$ is expected change in outcome for cohort $g$ between periods $g-1$ and $t$
+- $\mathbb{E}[Y_{is, t} - Y_{is, g-1} \mid G_i \in \mathcal{G}_{comp}]$ is the expected change in outcome for the comparison group that is not-yet-treated at time $t$
+- $G_i$ is the cohort of counties that are treated at time $t$
+- $\mathcal{G}_{comp}$ is the set of cohorts that are not-yet-treated at time $t$
+
+
+### Average Treatment Effect Using Callaway and Sant’Anna (2021) (Cont'd)
+
+\begin{align*}
+ATT(g, t) = \mathbb{E}[Y_{is, t} - Y_{is, g-1} \mid G_i = g] - \mathbb{E}[Y_{is, t} - Y_{is, g-1} \mid G_i \in \mathcal{G}_{comp}]
+\end{align*}
+
+where:
+
+- $\mathbb{E}[Y_{is, t} - Y_{is, g-1} \mid G_i = g]$ is expected change in outcome for cohort $g$ between periods $g-1$ and $t$
+- $\mathbb{E}[Y_{is, t} - Y_{is, g-1} \mid G_i \in \mathcal{G}_{comp}]$ is the expected change in outcome for the comparison group that is not-yet-treated at time $t$
+- $G_i$ is the cohort of counties that are treated at time $t$
+- $\mathcal{G}_{comp}$ is the set of cohorts that are not-yet-treated at time $t$
+- $\hat{ATT(g, t)} =  \hat{\beta_l}$ if the parallel trends and no anticipation assumptions hold
+
+\hyperlink{Back}{\beamerbutton{Back}}
+
+### Average Treatment Effect Using Callaway and Sant’Anna (2021): Example
+
+\begin{align*}
+ATT(g, t) = \mathbb{E}[Y_{is, t} - Y_{is, g-1} \mid G_i = g] - \mathbb{E}[Y_{is, t} - Y_{is, g-1} \mid G_i \in \mathcal{G}_{comp}]
+\end{align*}
+
+where:
+
+- $G_i=$ \{Group A (treated in 2020), Group B (treated in 2022), Group C (never treated)\}
+- $ATT(A, 2021) = \mathbb{E}[Y_{is, 2021} - Y_{is, 2020} \mid G_i = A] - \mathbb{E}[Y_{is, 2021} - Y_{is, 2020} \mid G_i = B]$
+- $ATT(B, 2023) = \mathbb{E}[Y_{is, 2023} - Y_{is, 2022} \mid G_i = B] - \mathbb{E}[Y_{is, 2023} - Y_{is, 2022} \mid G_i = C]$
+
+\hyperlink{Back}{\beamerbutton{Back}}
+
+
+### Trends in Suicide by Firearms: Treatment and Control States Over Time
+
+```{r plot-app1, echo=FALSE, warning=FALSE, out.width="80%", fig.show='hold', fig.align='center'}
+library(gridExtra)
+library(png)  # Make sure this is loaded for readPNG
+
+# Load your images
+p1 <- grid::rasterGrob(readPNG("trends/01-suicide_firearm_byyearbystate.png"))
+# Arrange the images in a grid
+# You can adjust the layout using ncol and nrow parameters
+grid.arrange(p1, ncol=1)
+```
+
+
+\hypertarget{trends-1}{}\hyperlink{Back2}{\beamerbutton{Back}}
+
+### Trends in Suicide by Firearms: Treatment and Control States Over Time
+
+```{r plot-app2, echo=FALSE, warning=FALSE, out.width="80%", fig.show='hold', fig.align='center'}
+library(gridExtra)
+library(png)  # Make sure this is loaded for readPNG
+
+# Load your images
+p1 <- grid::rasterGrob(readPNG("trends/01-suicide_firearm_byyearbystate.png"))
+# Arrange the images in a grid
+# You can adjust the layout using ncol and nrow parameters
+grid.arrange(p1, ncol=1)
+```
+
+
+\hypertarget{trends-2}{}\hyperlink{Back2}{\beamerbutton{Back}}
+
+### Trends in Suicide by Firearms: By Democratic Vote Share Over Time
+
+```{r plot-app3, echo=FALSE, warning=FALSE, out.width="80%", fig.show='hold', fig.align='center'}
+library(gridExtra)
+library(png)  # Make sure this is loaded for readPNG
+
+# Load your images
+p1 <- grid::rasterGrob(readPNG("trends/219-by-dem-vote.png"))
+# Arrange the images in a grid
+# You can adjust the layout using ncol and nrow parameters
+grid.arrange(p1, ncol=1)
+```
+
+
+\hypertarget{dem-vote}{}\hyperlink{Back2}{\beamerbutton{Back}}
+
+### Trends in Suicide by Firearms: By Density Over Time
+
+```{r plot-app4, echo=FALSE, warning=FALSE, out.width="80%", fig.show='hold', fig.align='center'}
+library(gridExtra)
+library(png)  # Make sure this is loaded for readPNG
+
+# Load your images
+p1 <- grid::rasterGrob(readPNG("trends/220-by-density.png"))
+# Arrange the images in a grid
+# You can adjust the layout using ncol and nrow parameters
+grid.arrange(p1, ncol=1)
+```
+
+
+\hypertarget{density}{}\hyperlink{Back2}{\beamerbutton{Back}}
+
