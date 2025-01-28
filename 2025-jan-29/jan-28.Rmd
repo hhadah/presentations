@@ -78,7 +78,7 @@ colors <-  thematic::okabe_ito(5)
 # theme_set(theme_minimal() + theme_customs)
 theme_set(hrbrthemes::theme_ipsum() + theme_customs)
 ## Set master directory where all sub-directories are located
-mdir <- "/Users/hhadah/Library/CloudStorage/Dropbox/Research/My Research Data and Ideas/SuicideGun"
+mdir <- "/Users/hhadah/Documents/GiT/presentations/2025-jan-29"
 
 ## Set working directories
 pres_trends <- paste0(mdir,"/output/trends")
@@ -307,7 +307,7 @@ grid.raster(img1)
 ### A Brief Intro to Difference-in-Differences
 
 - Also called “Diff-in-Diff” or just DD or DID or DiD.
-- This is a particular model used in regression analysis (more on what that is later).
+- This is a particular model used in regression analysis
 - Instead of just comparing the “treated” firms/people/counties to the “control” firms/people/counties, you make this comparison over time
 - Compare the pre-period (no one is “treated”) to the post-period (some firms/people/counties are “treated”)
 
@@ -317,12 +317,12 @@ Suppose you are interested in the effect of a “Top Gun Training” program on 
 
   - We can compare the performance of pilots who have gone through the training before and after the training
   - In this case, you're only looking at the treatment group!
-  - Impossible to know if change happened because of treatment or just naturally
 
 We can compare the performance of pilots who have gone through the training to those who have not
 
 - You're only looking at post-treatment values
-- Impossible to know if change happened because of natural growth
+
+#### Impossible to know if change happened because of natural growth
 
 ### The basic idea: Top Gun Training
 
@@ -445,9 +445,9 @@ ggplot(my_dag, aes(x = x, y = y, xend = xend, yend = yend)) +
 ```
 
 - The difference-in-differences estimate of the causal effect is:
-$(A – B) – (C – D)$
-- The $A – B$ tells us the change over time of Top Gun pilots. How did maneuvering change for Top Gun pilots?
-- The $C – D$ tells give us an estimate of the counterfactual. If Top Gun pilots are similar to non-Top Gun pilots in their maneuvering trends then $C – D$ gives us an estimate of what would have happened without Top Gun training. 
+$(A - B) - (C - D)$
+- The $A - B$ tells us the change over time of Top Gun pilots. How did maneuvering change for Top Gun pilots?
+- The $C - D$ tells give us an estimate of the counterfactual. If Top Gun pilots are similar to non-Top Gun pilots in their maneuvering trends then $C - D$ gives us an estimate of what would have happened without Top Gun training. 
 
 
 ###
@@ -593,17 +593,37 @@ ggplot(dd_data, aes(x = Time, y = avg, color = Group, group = Group)) +
 
 ### How We Measure the Impact of Waiting Periods on Firearm Suicides
 
-What I am Doing:
+What I am doing:
 
 - I want to see whether introducing a waiting period for purchasing firearms reduces the rate of firearm suicides
 - I track each county’s “event date,” which is the year (or period) it starts requiring waiting periods
 - Then, for each county, we look at its suicide rate before and after that event date and compare it to counties that haven’t yet started waiting periods
 - By doing this comparison in each time period before and after adoption, we get a picture of how firearm suicide rates change when a waiting period is introduced
+
+\hyperlink{attgt}{\beamerbutton{Empirical Specification}} \hypertarget{Back}{}
+
+### How We Measure the Impact of Waiting Periods on Firearm Suicides (cont.)
+
+What I am doing:
+
 - I assume that, if no waiting period had been put in place, the counties introducing it would have followed the same trends in firearm suicides as the counties not yet introducing it
 - I also assume that people don’t change their behavior in advance (i.e., no “rush” to buy guns just before a waiting period starts)
 - These comparisons (often called an “event study”) help us estimate the true effect of waiting periods on reducing firearm suicides over time
 
-\hyperlink{attgt}{\beamerbutton{Empirical Specification}} \hypertarget{Back}{}
+### Regression Equation
+
+\begin{align*}
+{\color{green}{Y_{cst}}} = &\alpha + \beta {\color{blue}{\text{Waiting}_c}} + \gamma {\color{yellow}{\text{Year}_t}} + \\
+&\delta {\color{red}{(\text{Waiting}_c \times \text{Year}_t)}} + \varepsilon_{it}
+\end{align*}
+
+\pause
+
+where:
+
+- $Y_{cst}$ is the number of firearm suicides per 100,000 people in county $c$ state $s$ in year $t$
+- $\text{Waiting}_c$ is a variable that equals 1 if county $c$ has a waiting period in year $t$
+- $\text{Year}_t$ is a variable that equals 1 in year $t$
 
 # Results
 

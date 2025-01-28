@@ -2,7 +2,7 @@
 \beamer@sectionintoc {2}{Data}{11}{0}{2}
 \beamer@sectionintoc {3}{A Brief Intro to Difference-in-Differences}{17}{0}{3}
 \beamer@sectionintoc {4}{Empirical Strategy}{28}{0}{4}
-\beamer@sectionintoc {5}{Results}{31}{0}{5}
-\beamer@sectionintoc {6}{Results: Non-Firearm Suicides}{36}{0}{6}
-\beamer@sectionintoc {7}{Conclusion}{41}{0}{7}
-\beamer@sectionintoc {8}{Appendix}{45}{0}{8}
+\beamer@sectionintoc {5}{Results}{34}{0}{5}
+\beamer@sectionintoc {6}{Results: Non-Firearm Suicides}{39}{0}{6}
+\beamer@sectionintoc {7}{Conclusion}{44}{0}{7}
+\beamer@sectionintoc {8}{Appendix}{48}{0}{8}
