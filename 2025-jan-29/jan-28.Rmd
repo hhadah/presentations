@@ -212,6 +212,28 @@ grid.arrange(p3, ncol=1)
 
 - Is there a \textcolor{blue}{causal} effect of \textcolor{red}{waiting periods} on suicides by firearms in the U.S.?
 
+### Contribution of this paper
+
+- I provide the first causal estimates of the effect of waiting periods on firearm suicides in the U.S.
+
+\bigskip
+
+- Provides evidence-based insights for key stakeholders and policymakers:
+
+  - Healthcare providers and public health officials designing prevention strategies
+  - State legislators crafting gun safety legislation
+  - Mental health advocates developing policy recommendations
+
+### I find that waiting periods cause a reduction in firearm suicides
+
+- Waiting periods reduce firearm suicides by 0.6 deaths per 100,000 people
+
+- These effects are larger among men, individuals aged 55+, and white individuals
+
+- Waiting periods do not increase non-firearm suicides
+
+- The benefits of waiting periods could be as high as \$37.9 billion per year
+
 # Data
 
 ### Suicide and state-level gun control data
@@ -246,40 +268,13 @@ gridExtra::grid.arrange(
 
 ```
 
-### State-level variation in waiting period policies
+### I will use a subsample of states and years where states do not switch back to untreatment \hyperlink{clusters}{\beamerbutton{Clusters}} \hypertarget{Back3}{}
 
-```{r plot-4, echo=FALSE, warning=FALSE, out.width="100%", fig.show='hold', fig.align='center'}
-library(gridExtra)
-# Load your images
-p1 <- grid::rasterGrob(readPNG("trends/211-county_year_panel_view.png"))
-
-
-gridExtra::grid.arrange(
-  grobs = list(p1),
-  ncol = 1
-)
-```
-
-### I will use a subsample of states and years where states do not switch back to untreatment
 
 ```{r plot-5, echo=FALSE, warning=FALSE, out.width="100%", fig.show='hold', fig.align='center'}
 library(gridExtra)
 # Load your images
 p1 <- grid::rasterGrob(readPNG("trends/192-staggarred_sample_panel_view.png"))
-
-
-gridExtra::grid.arrange(
-  grobs = list(p1),
-  ncol = 1
-)
-```
-
-### Number of clusters per treatment history
-
-```{r plot-6, echo=FALSE, warning=FALSE, out.width="100%", fig.show='hold', fig.align='center'}
-library(gridExtra)
-# Load your images
-p1 <- grid::rasterGrob(readPNG("trends/195-staggarred_sample_panel_view.png"))
 
 
 gridExtra::grid.arrange(
@@ -327,7 +322,7 @@ We can compare the performance of pilots who have gone through the training to t
 ### The basic idea: Top Gun Training
 
 
-```{r min-wage-dag, echo=FALSE, warning=FALSE, message=FALSE, out.width="55%", fig.show='hold', fig.align='center', include=TRUE, eval=TRUE, results = FALSE}
+```{r min-wage-dag, echo=FALSE, warning=FALSE, message=FALSE, out.width="60%", fig.show='hold', fig.align='center', include=TRUE, eval=TRUE, results = FALSE}
 node_details <- tribble(
   ~name, ~label, ~x, ~y,
   "treatment", "Top Gun Training", 1, 2,
@@ -445,9 +440,9 @@ ggplot(my_dag, aes(x = x, y = y, xend = xend, yend = yend)) +
 ```
 
 - The difference-in-differences estimate of the causal effect is:
-$(A - B) - (C - D)$
-- The $A - B$ tells us the change over time of Top Gun pilots. How did maneuvering change for Top Gun pilots?
-- The $C - D$ tells give us an estimate of the counterfactual. If Top Gun pilots are similar to non-Top Gun pilots in their maneuvering trends then $C - D$ gives us an estimate of what would have happened without Top Gun training. 
+$(D - C) - (B - A)$
+- The $B - A$ tells us the change over time of Top Gun pilots. How did maneuvering change for Top Gun pilots?
+- The $D - C$ tells give us an estimate of the counterfactual. If Top Gun pilots are similar to non-Top Gun pilots in their maneuvering trends then $C - D$ gives us an estimate of what would have happened without Top Gun training. 
 
 
 ###
@@ -621,9 +616,27 @@ What I am doing:
 
 where:
 
-- $Y_{cst}$ is the number of firearm suicides per 100,000 people in county $c$ state $s$ in year $t$
-- $\text{Waiting}_c$ is a variable that equals 1 if county $c$ has a waiting period in year $t$
-- $\text{Year}_t$ is a variable that equals 1 in year $t$
+- ${\color{green}{Y_{cst}}}$ is the number of firearm suicides per 100,000 people in county $c$ state $s$ in year $t$
+- ${\color{blue}{\text{Waiting}_c}}$ is a variable that equals 1 if county $c$ has a waiting period in year $t$
+- ${\color{yellow}{\text{Year}_t}}$ is a variable that equals 1 in year $t$
+
+
+### Regression Equation (cont.)
+
+\begin{align*}
+Y_{cst} = &{\color{green}\alpha} + {\color{blue}\beta}{\text{Waiting}_c} + {\color{yellow}\gamma}{\text{Year}_t} + \\
+& {\color{red}\delta}{(\text{Waiting}_c \times \text{Year}_t)} + \varepsilon_{it}
+\end{align*}
+
+\pause
+
+where:
+
+- ${\color{green}\alpha}$   is the number average of counties without waiting periods pre-treatment years
+- ${\color{blue}\beta}$     is increased firearm suicides across all counties regardless of when waiting periods are introduced
+- ${\color{yellow}\gamma}$  is the increase in firearm suicides over time within counties
+- ${\color{red}\delta}$     is the difference-in-differences estimate of the causal effect of waiting periods on firearm suicides
+
 
 # Results
 
@@ -940,3 +953,35 @@ grid.arrange(p1, ncol=1)
 
 \hypertarget{density}{}\hyperlink{Back2}{\beamerbutton{Back}}
 
+
+### State-level variation in waiting period policies
+
+```{r plot-4, echo=FALSE, warning=FALSE, out.width="100%", fig.show='hold', fig.align='center'}
+library(gridExtra)
+# Load your images
+p1 <- grid::rasterGrob(readPNG("trends/211-county_year_panel_view.png"))
+
+
+gridExtra::grid.arrange(
+  grobs = list(p1),
+  ncol = 1
+)
+```
+
+\hypertarget{state-var}{}\hyperlink{Back3}{\beamerbutton{Back}}
+
+### Number of clusters per treatment history
+
+```{r plot-6, echo=FALSE, warning=FALSE, out.width="100%", fig.show='hold', fig.align='center'}
+library(gridExtra)
+# Load your images
+p1 <- grid::rasterGrob(readPNG("trends/195-staggarred_sample_panel_view.png"))
+
+
+gridExtra::grid.arrange(
+  grobs = list(p1),
+  ncol = 1
+)
+```
+
+\hypertarget{clusters}{}\hyperlink{Back3}{\beamerbutton{Back}}
