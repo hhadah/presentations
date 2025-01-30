@@ -221,7 +221,7 @@ grid.arrange(p3, ncol=1)
 - Provides evidence-based insights for key stakeholders and policymakers:
 
   - Healthcare providers and public health officials designing prevention strategies 
-  - State legislators crafting gun safety legislation
+  - State legislators crafting legislation to reduce suicides
   - Mental health advocates developing policy recommendations
   - Military stakeholders addressing suicide prevention among service members who have higher access to firearms
 
@@ -241,7 +241,7 @@ grid.arrange(p3, ncol=1)
 
 # Data
 
-### Suicide and state-level gun control data
+### Suicide and state-level gun laws data
 
 - My primary data source is the National Vital Statistics System (National Center for Health Statistics, 2020)
 
@@ -249,9 +249,9 @@ grid.arrange(p3, ncol=1)
   - The Multiple Cause of Death files provide the cause of death of every mortality that occurs in the U.S.
   - The data is at the county level and from 1959 to 2019 and has information on sex, age, race, etc.
 
-- For state level gun control policies, I use the RAND state firearm law database (RAND, 2022)
+- For state level gun law policies, I use the RAND state firearm law database (RAND, 2022)
 
-  - This dataset has information on all gun control policies, including waiting periods
+  - This dataset has information on all gun policies, including waiting periods
 
 \hyperlink{trends-1}{\beamerbutton{Firearm Suicides and Treatment Trends}} \hypertarget{Back2}{}
 \hyperlink{trends-2}{\beamerbutton{Suicides and Treatment Trends}} \hypertarget{Back2}{}
@@ -273,7 +273,7 @@ gridExtra::grid.arrange(
 
 ```
 
-### I will use a subsample of states and years where states do not switch back to untreatment \hyperlink{clusters}{\beamerbutton{Clusters}} \hypertarget{Back3}{}
+### State-by-state rollout: Transition from treatment to control \hyperlink{clusters}{\beamerbutton{Clusters}} \hypertarget{Back3}{}
 
 
 ```{r plot-5, echo=FALSE, warning=FALSE, out.width="100%", fig.show='hold', fig.align='center'}
@@ -290,7 +290,7 @@ gridExtra::grid.arrange(
 
 # A Brief Intro to Difference-in-Differences
 
-### Selection Bias Could Lead to Misleading Results
+### Selection bias could lead to misleading results
 
 ```{r airplane, echo=FALSE, warning=FALSE, out.width="80%", fig.show='hold', fig.align='center'}
 library(ggplot2)
