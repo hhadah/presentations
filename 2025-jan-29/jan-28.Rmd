@@ -6,7 +6,7 @@ author:
   #  - Gael Compta
 institute: |
   | Murphy Inst. & Tulane U
-date: "01/28/2025"
+date: "01/30/2025"
 header-includes:
    - \usepackage{bbm}
    - \usepackage{amsmath}
@@ -173,9 +173,9 @@ gridExtra::grid.arrange(
   - Waiting-period requirements were associated with reductions in firearm suicide rates (Edwards et al., 2018; Luca, Malhotra, and Poliquin, 2017)
   - States with Brady Act waiting periods saw firearm suicide declines (Ludwig and Cook, 2000)
   - Gun-related suicides correlated with gun ownership across 21 countries (Killias et al., 2001; Victimization Surveys, N=16–18)
-  - Australian gun law reforms reduced firearm suicides but not overall suicides (Baker & McPhedran, 2007; Time-series: 1979–2004)
-  - Waiting periods were advocated to mitigate gun-related suicides (Lewiecki & Miller, 2013)
-  - Indiana's firearm seizure law was linked to a 7.5% drop in suicides (Kivisto & Phalen, 2018; State-level data: 1981–2015)
+  - Australian gun law reforms reduced firearm suicides but not overall suicides (Baker and McPhedran, 2007; Time-series: 1979–2004)
+  - Waiting periods were advocated to mitigate gun-related suicides (Lewiecki and Miller, 2013)
+  - Indiana's firearm seizure law was linked to a 7.5% drop in suicides (Kivisto and Phalen, 2018; State-level data: 1981–2015)
   - Gun ownership positively related to firearm suicides in 11 countries (Killias, 1993; Survey, N=28,000)
 
 ### Suicide is often considered an impulsive decision that can be prevented by restricting access to means
@@ -220,9 +220,14 @@ grid.arrange(p3, ncol=1)
 
 - Provides evidence-based insights for key stakeholders and policymakers:
 
-  - Healthcare providers and public health officials designing prevention strategies
+  - Healthcare providers and public health officials designing prevention strategies 
   - State legislators crafting gun safety legislation
   - Mental health advocates developing policy recommendations
+  - Military stakeholders addressing suicide prevention among service members who have higher access to firearms
+
+\bigskip
+
+- I create a crosswalk to standardize the county level death file datasets from 1959 to 2019
 
 ### I find that waiting periods cause a reduction in firearm suicides
 
@@ -348,9 +353,9 @@ status_colors <- c(exposure = "#0074D9", outcome = "#FF851B", latent = "grey50")
 # Fancier graph
 set.seed(1234)
 ggplot(my_dag, aes(x = x, y = y, xend = xend, yend = yend)) +
-  geom_dag_edges(start_cap = ggraph::circle(3, "lines"),
-                 end_cap = ggraph::circle(3, "lines"),
-                 edge_width = 1.5, 
+  geom_dag_edges(start_cap = ggraph::circle(2.5, "lines"),
+                 end_cap = ggraph::circle(2.5, "lines"),
+                 edge_width = 1.25, 
                  arrow_directed = grid::arrow(length = grid::unit(0.75, "lines"), type = "closed")) +
   geom_dag_point(aes(color = status), size = 30) +
   geom_dag_label_repel(aes(label = label, fill = status), seed = 1234,
@@ -586,7 +591,7 @@ ggplot(dd_data, aes(x = Time, y = avg, color = Group, group = Group)) +
 
 #### I will compare the change in firearm suicides in treated counties to the change in firearm suicides in untreated counties
 
-### How We Measure the Impact of Waiting Periods on Firearm Suicides
+### How I measure the impact of waiting periods on firearm suicides
 
 What I am doing:
 
@@ -597,7 +602,7 @@ What I am doing:
 
 \hyperlink{attgt}{\beamerbutton{Empirical Specification}} \hypertarget{Back}{}
 
-### How We Measure the Impact of Waiting Periods on Firearm Suicides (cont.)
+### How I measure the impact of waiting periods on firearm suicides
 
 What I am doing:
 
@@ -605,11 +610,10 @@ What I am doing:
 - I also assume that people don’t change their behavior in advance (i.e., no “rush” to buy guns just before a waiting period starts)
 - These comparisons (often called an “event study”) help us estimate the true effect of waiting periods on reducing firearm suicides over time
 
-### Regression Equation
+### Regression equation
 
 \begin{align*}
-{\color{green}{Y_{cst}}} = &\alpha + \beta {\color{blue}{\text{Waiting}_c}} + \gamma {\color{yellow}{\text{Year}_t}} + \\
-&\delta {\color{red}{(\text{Waiting}_c \times \text{Year}_t)}} + \varepsilon_{it}
+{\color{green}{Y_{cst}}} = \alpha + \beta {\color{blue}{\text{Waiting}_c}} + \gamma {\color{yellow}{\text{Year}_t}} + \delta {\color{red}{(\text{Waiting}_c \times \text{Year}_t)}} + \varepsilon_{it}
 \end{align*}
 
 \pause
@@ -621,11 +625,10 @@ where:
 - ${\color{yellow}{\text{Year}_t}}$ is a variable that equals 1 in year $t$
 
 
-### Regression Equation (cont.)
+### Regression equation (cont.)
 
 \begin{align*}
-Y_{cst} = &{\color{green}\alpha} + {\color{blue}\beta}{\text{Waiting}_c} + {\color{yellow}\gamma}{\text{Year}_t} + \\
-& {\color{red}\delta}{(\text{Waiting}_c \times \text{Year}_t)} + \varepsilon_{it}
+Y_{cst} = {\color{green}\alpha} + {\color{blue}\beta}{\text{Waiting}_c} + {\color{yellow}\gamma}{\text{Year}_t} +  {\color{red}\delta}{(\text{Waiting}_c \times \text{Year}_t)} + \varepsilon_{it}
 \end{align*}
 
 \pause
@@ -637,6 +640,9 @@ where:
 - ${\color{yellow}\gamma}$  is the increase in firearm suicides over time within counties
 - ${\color{red}\delta}$     is the difference-in-differences estimate of the causal effect of waiting periods on firearm suicides
 
+\pause
+
+- To avoid comparison between treated counties, I use Callaway and Sant’Anna (2021) to estimate the causal effect of waiting periods
 
 # Results
 
